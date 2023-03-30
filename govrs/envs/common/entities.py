@@ -29,9 +29,9 @@ class World(Entity):
         self.num_blockers = num_blockers
 
 class SimpleGridDroneWorld(World):
-    def __init__(self, size, default_world, num_blockers = 0):
+    def __init__(self, size, default_world = True, num_blockers = 0):
         super(SimpleGridDroneWorld, self).__init__(size, default_world, num_blockers)
-        self.world = np.zeros((self.size, self.size, self.size), dtype=int) # zxy indexing system
+        self.world = np.zeros((self.size, self.size, self.size), dtype=int) # zyx indexing system
         self.world = self.populate_world(self.world, self.size, self.default_world, self.num_blockers)
 
     def populate_world(self, world_arr, size, default_world, num_blockers):
@@ -50,14 +50,11 @@ class SimpleGridDroneWorld(World):
             return world_arr
         else:
             if num_blockers > math.sqrt(size*size*size):
-                # print(num_blockers)
                 num_blockers = int(math.sqrt(size*size*size))
             valid_indices = np.where(world_arr == 0)
-            # print(valid_indices[0], valid_indices[1], num_blockers)
             x_idx, y_idx, z_idx = list(valid_indices[0]), list(valid_indices[1]), list(valid_indices[2])
             for i in range(num_blockers):
-                blocker_ind = random.choice(range(len(valid_indices[0])))
-                # print(x_idx, y_idx)
+                blocker_ind = random.choice(range(len(x_idx)))
                 world_arr[x_idx[blocker_ind]][y_idx[blocker_ind]][z_idx[blocker_ind]] = 5 # represents the blocker object
                 x_idx.pop(blocker_ind)
                 y_idx.pop(blocker_ind)
@@ -67,7 +64,7 @@ class SimpleGridDroneWorld(World):
     
 
 class SimpleGridRoadWorld(World):
-    def __init__(self, size, default_world, num_blockers = 0):
+    def __init__(self, size, default_world = True, num_blockers = 0):
         super(SimpleGridRoadWorld, self).__init__(size, default_world, num_blockers)
         self.world = np.zeros((self.size, self.size), dtype=int)
         self.world = self.populate_world(self.world, self.size, self.default_world, self.num_blockers)
@@ -77,20 +74,17 @@ class SimpleGridRoadWorld(World):
         world_arr[size-1][size-1] = 4 # represents the final goal
         world_arr[size//2][size-1] = 2 # represents the second agent
         world_arr[size//2][0] = 3 # represents the package
-        # print(num_blockers)
+
         if default_world == True: # num_blockers arguments irrelevant
             return world_arr
         else:
             if num_blockers > math.sqrt(size*size)/2:
-                # print(num_blockers)
                 num_blockers = int(math.sqrt(size*size)/2)
             valid_indices = np.where(world_arr == 0)
-            # print(valid_indices[0], valid_indices[1], num_blockers)
-            x_idx, y_idx = list(valid_indices[0]), list(valid_indices[1])
+            y_idx, x_idx = list(valid_indices[0]), list(valid_indices[1])
             for i in range(num_blockers):
-                blocker_ind = random.choice(range(len(valid_indices[0])))
-                # print(x_idx, y_idx)
-                world_arr[x_idx[blocker_ind]][y_idx[blocker_ind]] = 5 # represents the blocker object
+                blocker_ind = random.choice(range(len(x_idx)))
+                world_arr[y_idx[blocker_ind]][x_idx[blocker_ind]] = 5 # represents the blocker object
                 x_idx.pop(blocker_ind)
                 y_idx.pop(blocker_ind)
 
