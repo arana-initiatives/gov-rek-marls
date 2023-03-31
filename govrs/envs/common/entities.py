@@ -32,12 +32,12 @@ class World(Entity):
 class SimpleGridDroneWorld(World):
     def __init__(self, size, default_world = True, num_blockers = 0):
         super(SimpleGridDroneWorld, self).__init__(size, default_world, num_blockers)
-        self.world = np.zeros((self.size, self.size, self.size), \
+        self.world = np.zeros((self.size, self.size, self.size),
                               dtype=int) # zyx indexing system
-        self.goal_world = np.zeros((self.size, self.size, self.size), \
+        self.goal_world = np.zeros((self.size, self.size, self.size),
                               dtype=int) # zyx indexing system
         
-        self.world = self.populate_world(self.world, self.size, \
+        self.world = self.populate_world(self.world, self.size,
                                          self.default_world, self.num_blockers)
         
         self.goal_world = deepcopy(self.world)
@@ -96,7 +96,7 @@ class SimpleGridRoadWorld(World):
         self.world = np.zeros((self.size, self.size), dtype=int)
         self.goal_world = np.zeros((self.size, self.size), dtype=int)
 
-        self.world = self.populate_world(self.world, self.size, \
+        self.world = self.populate_world(self.world, self.size,
                                          self.default_world, self.num_blockers)
         
         self.goal_world = deepcopy(self.world)
