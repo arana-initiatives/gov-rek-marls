@@ -177,6 +177,7 @@ class GridRoadEnv(gym.Env):
         # agent's name is matched to the array entries for index identification
         # 'current_player.name' should be updated alongside the array values
         current_pos = np.where(self.world == self.current_player.name)
+        # sample current_pos example: (array([1]), array([0]))
         # the current agent must non-zero have gas in it
         if self.current_player.gas > 0:
             if action == 0:
