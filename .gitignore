@@ -1,5 +1,10 @@
-# not commiting rendered logs output files for package delivery environments
-render.txt
+# not commiting video and gif output files
+*.mp4
+*.gif
+
+# not commiting rendered logs output files
+*.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
