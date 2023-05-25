@@ -5,12 +5,13 @@ from gym import spaces
 from collections import OrderedDict
 from gym.envs.registration import EnvSpec
 
-from govrs.envs.common.entities import *
+from gov_rek.envs.common.entities import *
 
-class GridRoadEnv(gym.Env):
+class GridDroneEnv(gym.Env):
 
     def randomly_rotate_world(self, world_arr, goal_world_arr = None, her_goal = False):
-
+        # rotating limited across z-axis only
+        # other random rotations not functionally meaningful for drone delivery task
         rot_world = world_arr
         world_two = np.rot90(rot_world)
         world_three = np.rot90(world_two)
@@ -47,10 +48,11 @@ class GridRoadEnv(gym.Env):
         return rot_world
     
     def add_gas_constraint(self, gas_val, size):
-        if (gas_val < size) or (gas_val > (2*(size-1)-1)):
-            return random.randint(size, 2*(size-1))
+        # resource constraints defined for agents
+        if (gas_val < (2*(size-1)-1)) or (gas_val > (2*size - 1)):
+            return random.randint((2*(size-1)-1), (2*size - 1))
         return gas_val
-
+    
     def __init__(self, size, gas, randomize_world = False, \
                  default_world = True, num_blockers = 0, her_goal = False):
         # gas constraints limits for restricted env mobility
@@ -59,13 +61,13 @@ class GridRoadEnv(gym.Env):
         self.randomize_world = randomize_world
         self.num_blockers = num_blockers
         self.default_world = default_world
-        self.grid_road = SimpleGridRoadWorld(self.size,
+        self.grid_drone = SimpleGridDroneWorld(self.size,
                                              self.default_world,
                                              self.num_blockers)
-        self.world = self.grid_road.world
+        self.world = self.grid_drone.world
         self.her_goal = her_goal
         if self.her_goal:
-            self.goal_world = self.grid_road.goal_world
+            self.goal_world = self.grid_drone.goal_world
 
         if self.randomize_world:
             self.world = self.randomly_rotate_world(self.world)
@@ -75,26 +77,28 @@ class GridRoadEnv(gym.Env):
                                                                      self.her_goal)
 
 
-        self.action_space = spaces.Discrete(4)
-        shape_0 = np.size(self.world, 0) # represents y-axis of the grid world
-        shape_1 = np.size(self.world, 1) # represents x-axis of the grid world
+        self.action_space = spaces.Discrete(6)
+        shape_0 = np.size(self.world, 0) # represents z-axis of the grid world
+        shape_1 = np.size(self.world, 1) # represents y-axis of the grid world
+        shape_2 = np.size(self.world, 2) # represents x-axis of the grid world
+
         if self.her_goal:
             self.observation_space = spaces.Dict(
                 {
                     "observation": spaces.Box(low=0, high=5,
-                                            shape=(shape_0 + 1, shape_1),
+                                            shape=(shape_0 + 1, shape_1, shape_2),
                                             dtype=np.int16),
                     "achieved_goal": spaces.Box(low=0, high=5,
-                                            shape=(shape_0 + 1, shape_1),
+                                            shape=(shape_0 + 1, shape_1, shape_2),
                                             dtype=np.int16),
                     "desired_goal": spaces.Box(low=0, high=5,
-                                            shape=(shape_0 + 1, shape_1),
+                                            shape=(shape_0 + 1, shape_1, shape_2),
                                             dtype=np.int16),
                 }
             )
         else:
             self.observation_space = spaces.Box(low=0, high=5,
-                                            shape=(shape_0 + 1, shape_1),
+                                            shape=(shape_0 + 1, shape_1, shape_2),
                                             dtype=np.int16)
         self.reward_range = (-10, 10)
         self.current_episode = 0
@@ -103,33 +107,33 @@ class GridRoadEnv(gym.Env):
         self.gas = self.add_gas_constraint(gas, self.size)
         # defining the driver agents in the environments
         # 3 integer value assigned instead of 0 while carrying the package
-        self.agent_one = DriverAgent(1, self.gas, 0)
+        self.agent_one = DroneAgent(1, self.gas, 0)
         # 3 integer value assigned instead of 0 while carrying the package
-        self.agent_two = DriverAgent(2, int(self.gas*2.75), 0)
-        self.spec = EnvSpec("GridRoadEnv-v0")
+        self.agent_two = DroneAgent(2, int(self.gas*2.75), 0)
+        self.spec = EnvSpec("GridDroneEnv-v0")
 
     def reset(self):
         # sequential game formulation:
         # each player agent moves one step when its their chance
 
         # instantiating agent 1 upon env reset
-        self.agent_one = DriverAgent(1, self.gas, 0)
+        self.agent_one = DroneAgent(1, self.gas, 0)
         # instantiating agent 2 upon env reset
-        self.agent_two = DriverAgent(2, int(self.gas*2.75), 0)
+        self.agent_two = DroneAgent(2, int(self.gas*2.75), 0)
         self.current_player = self.agent_one
         # 'P' represents playable game state,
         # 'W' represents package delivered state,
         # 'L' represents no delivery state
         self.state = 'P'
         self.current_step = 0
-        self.max_step = int(self.gas*4.75)
-        self.grid_road = SimpleGridRoadWorld(self.size,
+        self.max_step = int(self.gas*5.75)
+        self.grid_drone = SimpleGridDroneWorld(self.size,
                                              self.default_world,
                                              self.num_blockers)
-        self.world = self.grid_road.world
+        self.world = self.grid_drone.world
         
         if self.her_goal:
-            self.goal_world = self.grid_road.goal_world
+            self.goal_world = self.grid_drone.goal_world
 
         if self.randomize_world:
             self.world = self.randomly_rotate_world(self.world)
@@ -145,9 +149,9 @@ class GridRoadEnv(gym.Env):
     
     def _next_observation(self):
         obs = self.world
-        data_to_add = [0] * np.size(self.world, 1)
+        data_to_add = np.zeros((self.size, self.size), dtype=int)
         # adding current player's label in the obs, not permutation invariant
-        data_to_add[0] = self.current_player.name
+        data_to_add[0][0] = self.current_player.name
         obs = np.append(obs, [data_to_add], axis=0)
         # observation sample provided below for reference:
         # last row, represents 'data_to_add' vector
@@ -159,8 +163,8 @@ class GridRoadEnv(gym.Env):
 
         if self.her_goal:
             goal_obs = self.goal_world
-            goal_data_to_add = [0] * np.size(self.goal_world, 1)
-            goal_data_to_add[0] = 2
+            goal_data_to_add = np.zeros((self.size, self.size), dtype=int)
+            goal_data_to_add[0][0] = 2
             goal_obs = np.append(goal_obs, [goal_data_to_add], axis=0)
             return OrderedDict(
                 [
@@ -170,39 +174,39 @@ class GridRoadEnv(gym.Env):
                 ]
             )
 
-
         return obs
+
 
     def _take_action(self, action):
         # agent's name is matched to the array entries for index identification
         # 'current_player.name' should be updated alongside the array values
         current_pos = np.where(self.world == self.current_player.name)
-        # sample current_pos example: (array([1]), array([0]))
+
         # the current agent must non-zero have gas in it
         if self.current_player.gas > 0:
             if action == 0:
-                 # agent moving upwards
-                next_pos = (current_pos[0] - 1, current_pos[1])
+                 # agent moving upwards along the y-axis only
+                next_pos = (current_pos[0], current_pos[1] - 1, current_pos[2])
 
-                if next_pos[0] >= 0 and int(self.world[next_pos]) == 0:
+                if next_pos[1] >= 0 and int(self.world[next_pos]) == 0:
                     self.world[next_pos] = self.current_player.name
                     self.world[current_pos] = 0
                     # reducing the agent's gas by 1
                     self.current_player.gas = self.current_player.gas - 1
 
-                elif next_pos[0] >= 0 and int(self.world[next_pos]) in (1, 2, 5):
+                elif next_pos[1] >= 0 and int(self.world[next_pos]) in (1, 2, 5):
                     # two agents and blocker object can't be at the same place
                     pass 
 
-                elif next_pos[0] >= 0 and int(self.world[next_pos] == 3):
+                elif next_pos[1] >= 0 and int(self.world[next_pos] == 3):
                     self.world[next_pos] = self.current_player.name
                     # package is also hidden now from other agent
-                    self.current_player.package = 3 
+                    self.current_player.package = 3
                     self.world[current_pos] = 0
                     # reducing the agent's gas by 1
                     self.current_player.gas = self.current_player.gas - 1
 
-                elif next_pos[0] >= 0 and int(self.world[next_pos] == 4):
+                elif next_pos[1] >= 0 and int(self.world[next_pos] == 4):
                     # agent only allowed to transition at this position
                     # when it is having the package with itself
                     if self.current_player.package == 3:
@@ -219,7 +223,47 @@ class GridRoadEnv(gym.Env):
 
 
             elif action == 1:
-                next_pos = (current_pos[0], current_pos[1] + 1)
+                # agent moving right
+                next_pos = (current_pos[0], current_pos[1], current_pos[2] + 1)
+                limit = np.size(self.world, 2)
+
+                if next_pos[2] < limit and int(self.world[next_pos]) == 0:
+                    self.world[next_pos] = self.current_player.name
+                    self.world[current_pos] = 0
+                    # reducing the agent's gas by 1
+                    self.current_player.gas = self.current_player.gas - 1
+
+                elif next_pos[2] < limit and int(self.world[next_pos]) in (1, 2, 5):
+                    # two agents and blocker object can't be at the same place
+                    pass
+
+                elif next_pos[2] < limit and (int(self.world[next_pos]) == 3):
+                    self.world[next_pos] = self.current_player.name
+                    # package is also hidden now from other agent
+                    self.current_player.package = 3 
+                    self.world[current_pos] = 0
+                    # reducing the agent's gas by 1
+                    self.current_player.gas = self.current_player.gas - 1
+
+                elif next_pos[2] < limit and int(self.world[next_pos] == 4):
+                    # agent only allowed to transition at this position
+                    # when it is having the package with itself
+                    if self.current_player.package == 3:
+                        # like 3, 4 numbers present at the goal
+                        # but agent position only shown and represented
+                        self.world[next_pos] = self.current_player.name
+                        self.world[current_pos] = 0
+                        # the episode ends at this state
+                        self.state = 'W'
+                        # reducing the agent's gas by 1
+                        self.current_player.gas = self.current_player.gas - 1
+                    else:
+                        pass
+
+
+            elif action == 2:
+                # agent moving down
+                next_pos = (current_pos[0], current_pos[1] + 1, current_pos[2])
                 limit = np.size(self.world, 1)
 
                 if next_pos[1] < limit and int(self.world[next_pos]) == 0:
@@ -235,7 +279,7 @@ class GridRoadEnv(gym.Env):
                 elif next_pos[1] < limit and (int(self.world[next_pos]) == 3):
                     self.world[next_pos] = self.current_player.name
                     # package is also hidden now from other agent
-                    self.current_player.package = 3 
+                    self.current_player.package = 3
                     self.world[current_pos] = 0
                     # reducing the agent's gas by 1
                     self.current_player.gas = self.current_player.gas - 1
@@ -255,10 +299,47 @@ class GridRoadEnv(gym.Env):
                     else:
                         pass
 
+            elif action == 3:
+                # agent moving left
+                next_pos = (current_pos[0], current_pos[1], current_pos[2] - 1)
 
-            elif action == 2:
-                next_pos = (current_pos[0] + 1, current_pos[1])
-                limit = np.size(self.world, 0)
+                if next_pos[2] >= 0 and int(self.world[next_pos]) == 0:
+                    self.world[next_pos] = self.current_player.name
+                    self.world[current_pos] = 0
+                    # reducing the agent's gas by 1
+                    self.current_player.gas = self.current_player.gas - 1
+
+                elif next_pos[2] >= 0 and int(self.world[next_pos]) in (1, 2, 5):
+                    # two agents and blocker object can't be at the same place
+                    pass
+
+                elif next_pos[2] >= 0 and (int(self.world[next_pos]) == 3):
+                    self.world[next_pos] = self.current_player.name
+                    # package is also hidden now from other agent
+                    self.current_player.package = 3
+                    self.world[current_pos] = 0
+                    # reducing the agent's gas by 1
+                    self.current_player.gas = self.current_player.gas - 1
+
+                elif next_pos[2] >= 0 and int(self.world[next_pos] == 4):
+                    # agent only allowed to transition at this position
+                    # when it is having the package with itself
+                    if self.current_player.package == 3:
+                        # like 3, 4 numbers present at the goal
+                        # but agent position only shown and represented
+                        self.world[next_pos] = self.current_player.name
+                        self.world[current_pos] = 0
+                        # the episode ends at this state
+                        self.state = 'W'
+                        # reducing the agent's gas by 1
+                        self.current_player.gas = self.current_player.gas - 1
+                    else:
+                        pass
+
+            elif action == 4:
+                # agent moving upwards
+                next_pos = (current_pos[0] + 1, current_pos[1], current_pos[2])
+                limit = np.size(self.world, 1)
 
                 if next_pos[0] < limit and int(self.world[next_pos]) == 0:
                     self.world[next_pos] = self.current_player.name
@@ -293,20 +374,21 @@ class GridRoadEnv(gym.Env):
                     else:
                         pass
 
-            elif action == 3:
-                next_pos = (current_pos[0], current_pos[1] - 1)
+            elif action == 5:
+                # agent moving downwards
+                next_pos = (current_pos[0] - 1, current_pos[1], current_pos[2])
 
-                if next_pos[1] >= 0 and int(self.world[next_pos]) == 0:
+                if next_pos[0] >= 0 and int(self.world[next_pos]) == 0:
                     self.world[next_pos] = self.current_player.name
                     self.world[current_pos] = 0
                     # reducing the agent's gas by 1
                     self.current_player.gas = self.current_player.gas - 1
 
-                elif next_pos[1] >= 0 and int(self.world[next_pos]) in (1, 2, 5):
+                elif next_pos[0] >= 0 and int(self.world[next_pos]) in (1, 2, 5):
                     # two agents and blocker object can't be at the same place
                     pass
 
-                elif next_pos[1] >= 0 and (int(self.world[next_pos]) == 3):
+                elif next_pos[0] >= 0 and (int(self.world[next_pos]) == 3):
                     self.world[next_pos] = self.current_player.name
                     # package is also hidden now from other agent
                     self.current_player.package = 3
@@ -314,7 +396,7 @@ class GridRoadEnv(gym.Env):
                     # reducing the agent's gas by 1
                     self.current_player.gas = self.current_player.gas - 1
 
-                elif next_pos[1] >= 0 and int(self.world[next_pos] == 4):
+                elif next_pos[0] >= 0 and int(self.world[next_pos] == 4):
                     # agent only allowed to transition at this position
                     # when it is having the package with itself
                     if self.current_player.package == 3:
