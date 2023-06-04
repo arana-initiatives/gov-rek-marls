@@ -1,3 +1,6 @@
+# not commiting testing jupyter notebook files
+*.ipynb
+
 # not commiting video and gif output files
 *.mp4
 *.gif
