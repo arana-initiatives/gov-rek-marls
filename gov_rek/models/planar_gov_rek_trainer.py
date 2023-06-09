@@ -1,4 +1,5 @@
 import math
+import pprint
 import random
 import numpy as np
 
@@ -9,10 +10,9 @@ def prob_num_generator(round_number):
     # configuration mutate in which manner
     return math.floor(random.random()*round_number)
 
-
 class PlanarGovernedTrainer():
 
-    def __init__(self, num_hpo_rounds=3, total_budget=5e6, num_brackets=3, halving_eta=3):
+    def __init__(self, num_hpo_rounds=3, total_budget=2e6, num_brackets=3, halving_eta=3):
         self.num_hpo_rounds = num_hpo_rounds
         self.total_budget = total_budget
         self.halving_eta = halving_eta
@@ -31,9 +31,10 @@ class PlanarGovernedTrainer():
         self.re_hpo_config_list = self.kernel_config_generator(self.budget_dict_list, self.agent_kernels, self.spatial_kernels)
 
     def get_budget_dict(self, bracket_budget, num_brackets, halving_eta, total_budget, num_hpo_rounds):
-
         budget_dict_list = []
-        total_budgets = [int(total_budget * (i+1)/sum(range(num_hpo_rounds+1))) for i in range(num_hpo_rounds)]
+        total_budgets = [int(total_budget * ((i+1) / sum(range(num_hpo_rounds+1))) ) for i in range(num_hpo_rounds)]
+        total_budgets.sort(reverse=True)
+
         for round_budget in total_budgets:
             # hyperband algorithm's budget distributor algorithm implementation
             budget_dist_dict = {}
@@ -86,18 +87,27 @@ class PlanarGovernedTrainer():
             conf_counter = 0
             for (budget_bracket_idx, budget_bracket_dict) in budget_dict.items():
                 config_budget_config_dict = {}
+                conf_count_max = max(list(budget_bracket_dict.keys()))
                 for (conf_count, conf_timesteps) in budget_bracket_dict.items():
-                    conf_counter = conf_count + conf_counter
                     conf_kernels = []
                     for i in range(conf_count):
                         if itr_idx == 0:
-                            conf_kernels.append((random.choice(agent_kernel_list), conf_timesteps, 0))
+                            if conf_count_max == conf_count:
+                                conf_kernels.append((random.choice(agent_kernel_list), conf_timesteps, 0))
+                            else:
+                                conf_kernels.append(('', conf_timesteps, -1))
                         elif itr_idx == 1:
-                            conf_kernels.append((random.choice(spatial_kernel_list), conf_timesteps,
-                                                 prob_num_generator(itr_idx + 1)))
+                            if conf_count_max == conf_count:
+                                conf_kernels.append((random.choice(spatial_kernel_list), conf_timesteps,
+                                                     prob_num_generator(itr_idx + 1)))
+                            else:
+                                conf_kernels.append(('', conf_timesteps, -1))
                         else:
-                            conf_kernels.append((random.choice(spatial_kernel_list + agent_kernel_list), conf_timesteps,
-                                                 prob_num_generator(itr_idx + 1)))
+                            if conf_count_max == conf_count:
+                                conf_kernels.append((random.choice(spatial_kernel_list + agent_kernel_list), conf_timesteps,
+                                                     prob_num_generator(itr_idx + 1)))
+                            else:
+                                conf_kernels.append(('', conf_timesteps, -1))
                     config_budget_config_dict[conf_count] = conf_kernels
                 budget_dist_dict[budget_bracket_idx] = config_budget_config_dict
             hp_round_conf_counter.append(conf_counter)
@@ -107,9 +117,7 @@ class PlanarGovernedTrainer():
         return kernel_config_list
 
 def main():
-    model_trainer = PlanarGovernedTrainer()
-    # print(model_trainer.budget_dict_list)
-    import pprint
+    model_trainer = PlanarGovernedTrainer()    
     pprint.pprint(model_trainer.re_hpo_config_list)
 
 if __name__ == '__main__':
