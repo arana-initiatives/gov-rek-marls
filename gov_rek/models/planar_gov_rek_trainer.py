@@ -4,6 +4,12 @@ import numpy as np
 
 random.seed(16)
 
+def prob_num_generator(round_number):
+    # return mutation variant flag for deciding
+    # configuration mutate in which manner
+    return math.floor(random.random()*round_number)
+
+
 class PlanarGovernedTrainer():
 
     def __init__(self, num_hpo_rounds=3, total_budget=5e6, num_brackets=3, halving_eta=3):
@@ -64,16 +70,12 @@ class PlanarGovernedTrainer():
 
         return budget_dict_list
 
-
     def kernel_config_generator(self, budget_dict_list, agent_kernels, spatial_kernels):
-        # take input the budget dict, output dict configurations
-        # all rounds, scope to include previous rounds as well w/ naive kernels
-        # scope to go in for granular configurations as well for good configurations
-        # static nested dict that generate configuration layout randomly
-        # implemented now itself, 
-        
+        # generate base kernel configurations for the inputted multi-round hyperband budget dict
+        # the final kernel configuration list has the below stated sample data structure
+        # kernel_config_list: list[dict: {dict: {list[(tuple)]}}] specifies the trainer configuration blueprint
+        # for example: round list[bracket dict: {config dict: kernel configs[(base kernel name, budget value, mutation flag)]}]
 
-        # this nested list with nested dictionary with kernel list configurations is static in nature
         kernel_config_list = []
         agent_kernel_list = [i[0] for i in agent_kernels]
         spatial_kernel_list = [i[0] for i in spatial_kernels]
@@ -83,50 +85,32 @@ class PlanarGovernedTrainer():
             budget_dist_dict = {}
             conf_counter = 0
             for (budget_bracket_idx, budget_bracket_dict) in budget_dict.items():
-                # print(budget_bracket_idx, budget_bracket_dict, '\n')
                 config_budget_config_dict = {}
                 for (conf_count, conf_timesteps) in budget_bracket_dict.items():
-                    print(budget_bracket_idx, conf_count, conf_timesteps)
                     conf_counter = conf_count + conf_counter
                     conf_kernels = []
                     for i in range(conf_count):
                         if itr_idx == 0:
-                            conf_kernels.append((random.choice(agent_kernel_list),conf_timesteps))
+                            conf_kernels.append((random.choice(agent_kernel_list), conf_timesteps, 0))
                         elif itr_idx == 1:
-                            conf_kernels.append((random.choice(spatial_kernel_list),conf_timesteps))
+                            conf_kernels.append((random.choice(spatial_kernel_list), conf_timesteps,
+                                                 prob_num_generator(itr_idx + 1)))
                         else:
-                            conf_kernels.append((random.choice(spatial_kernel_list + agent_kernel_list),conf_timesteps))
+                            conf_kernels.append((random.choice(spatial_kernel_list + agent_kernel_list), conf_timesteps,
+                                                 prob_num_generator(itr_idx + 1)))
                     config_budget_config_dict[conf_count] = conf_kernels
                 budget_dist_dict[budget_bracket_idx] = config_budget_config_dict
             hp_round_conf_counter.append(conf_counter)
             itr_idx = itr_idx + 1
             kernel_config_list.append(budget_dist_dict)
 
-        # print(hp_round_conf_counter)
-        # print(hp_round_conf_counter)
-        # also, 50 % previous configs should be there are granular variants in round 2
-        # if round 3, 33 % granular variant direction, 33 % granular variant of agent, 33 % original configs + other new spatial kernel addition
-
-        
         return kernel_config_list
-
-
-    # def execute_learner():
-        # take input the configuration generated
-        # execute the model training, return output the episode_length, net_reward,
-        # based on sorting logic, it should return top-k values from the execution round, 
-        # separate executor function: indvidual models execute, and return learned model details
-        # dynamic configuration updator: take previous configurations (80 % top-k values, 20 % random values)
-        # & create new superimposed or vanilla kernels, append to generated configuration system
-        # final storing should be the net configuration that give best results as output
-
 
 def main():
     model_trainer = PlanarGovernedTrainer()
     # print(model_trainer.budget_dict_list)
     import pprint
     pprint.pprint(model_trainer.re_hpo_config_list)
-
 
 if __name__ == '__main__':
     main()
