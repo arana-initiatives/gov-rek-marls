@@ -1,6 +1,7 @@
 import math
 import pprint
 import random
+import collections
 import numpy as np
 
 random.seed(16)
@@ -9,6 +10,9 @@ def prob_num_generator(round_number):
     # return mutation variant flag for deciding
     # configuration mutate in which manner
     return math.floor(random.random()*round_number)
+
+def random_governance_simulator(kernel_name=None, kernel_config=None, timesteps=None):
+    return (random.randint(12, 24), random.uniform(3, 9))
 
 class PlanarGovernedTrainer():
 
@@ -115,10 +119,43 @@ class PlanarGovernedTrainer():
             kernel_config_list.append(budget_dist_dict)
 
         return kernel_config_list
+   
+    def run_random_trainer(self, re_hpo_config_list, top_k_count=3):
+        # implemented to test prototyping logic for the multi-round hpo executor
+        top_k_global = []
+        for budget_dict in re_hpo_config_list:
+            top_k_hpo_round = []
+            # for every hpo round check whether previous configurations are present to be added into the current round's configs
+            for (budget_bracket_idx, budget_bracket_dict) in budget_dict.items():
+                budget_bracket_dict = collections.OrderedDict(sorted(budget_bracket_dict.items(), reverse=True))
+                # print(budget_bracket_idx, budget_bracket_dict)
+                top_k_hpo_bracket = []
+                budget_bracket_conf_counts = list(budget_bracket_dict.keys())
+                # print(budget_bracket_conf_counts)
+                brack_conf_counter_idx = 0
+                for (conf_count, model_confs) in budget_bracket_dict.items():
+                    top_k_success_halving = []
+                    # print(conf_count, model_confs)
+                    for (kernel_name, timesteps, mut_flgs) in model_confs:
+                        # model training start, intermediate model save and clean up with appropriate rename logic needed
+                        top_k_success_halving.append((kernel_name, random_governance_simulator(kernel_name, timesteps, mut_flgs)))
+                    if (brack_conf_counter_idx+1) < len(budget_bracket_conf_counts):
+                        # sorting logic implementation before needed
+                        # print(brack_conf_counter_idx, budget_bracket_conf_counts[brack_conf_counter_idx+1])
+                        top_k_success_halving = top_k_success_halving[:budget_bracket_conf_counts[brack_conf_counter_idx+1]]
+                    brack_conf_counter_idx = brack_conf_counter_idx + 1
+                    # print(top_k_success_halving)
+                    top_k_hpo_bracket.extend(top_k_success_halving)
+                top_k_hpo_round.extend(top_k_hpo_bracket)
+            top_k_global.extend(top_k_hpo_round)
+        
+        return top_k_global
 
 def main():
     model_trainer = PlanarGovernedTrainer()    
-    pprint.pprint(model_trainer.re_hpo_config_list)
+    # pprint.pprint(model_trainer.re_hpo_config_list)
+    model_trainer.run_random_trainer(model_trainer.re_hpo_config_list)
+
 
 if __name__ == '__main__':
     main()
