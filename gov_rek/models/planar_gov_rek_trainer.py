@@ -28,8 +28,8 @@ class PlanarGovernedTrainer():
                               ('periodic_kernel', {'size':5.0, 'length_scale': 5.0, 'period': 2*np.pi}),
                               ('locally_periodic_kernel', {'size': 5.0, 'length_scale': 5.0, 'period':2*np.pi, 'alpha': 5.0})]
         self.spatial_kernels = [('irregular_gradient_kernel', {'pos_slope_flag': True, 'left_pos_vals': True, 'slope_gradient': 0.01}),
-                                ('regular_gradient_kernel', {'size': 5.0, 'length_scale': 5.0, 'period':2*np.pi, 'alpha': 5.0}),
-                                ('splitted_gradient_kernel', {'size': 5.0, 'length_scale': 5.0, 'period':2*np.pi, 'alpha': 5.0})]
+                                ('regular_gradient_kernel', {'pos_slope_flag': True, 'left_pos_vals': True, 'slope_gradient': 0.01}),
+                                ('splitted_gradient_kernel', {'size': 5.0, 'pos_slope_flag': True, 'slope_gradient': 0.01})]
         self.budget_dict_list = self.get_budget_dict(self.bracket_budget, self.num_brackets, self.halving_eta,
                                                      self.total_budget, self.num_hpo_rounds)
         self.re_hpo_config_list = self.kernel_config_generator(self.budget_dict_list, self.agent_kernels, self.spatial_kernels)
@@ -148,8 +148,9 @@ class PlanarGovernedTrainer():
                     top_k_hpo_bracket.extend(top_k_success_halving)
                 top_k_hpo_round.extend(top_k_hpo_bracket)
             top_k_global.extend(top_k_hpo_round)
-        
+        # previous round configurations will be merged with the new configurations
         return top_k_global
+
 
 def main():
     model_trainer = PlanarGovernedTrainer()    
