@@ -1,34 +1,10 @@
 # required imports
 import numpy as np
 from copy import deepcopy
-from matplotlib import cm
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
+from gov_rek.envs.governance.utils import *
 
 # testing related imports
 from gov_rek.envs.common.entities import SimpleGridRoadWorld
-
-def plot_kernel(kernel_arr, title):
-    plt.rcParams['font.family'] = 'serif'
-    plt.rcParams['font.serif'] = ['Times New Roman'] + plt.rcParams['font.serif']
-    x = range(kernel_arr.shape[0])
-    y = range(kernel_arr.shape[1])
-    # `plot_surface` expects `x` and `y` data to be 2D
-    X, Y = np.meshgrid(x, y) 
-    fig = plt.figure(figsize=(9, 5))
-    ax = fig.add_subplot(111, projection='3d')
-    surf = ax.plot_surface(X, Y, kernel_arr, rstride=1,
-                           cstride=1, alpha=0.65, cmap=cm.coolwarm)
-    fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
-    ax.set_xlabel('X', fontsize=16)
-    ax.set_ylabel('Y', fontsize=16)
-    ax.set_zlabel('Z', fontsize=16)
-    ax.set_zlim(np.min(kernel_arr), np.max(kernel_arr))
-    ax.set_title(title, fontsize=20)
-    plt.show()
-
-def normalize_rewards(reward_kernel, max_reward):
-    return np.around((reward_kernel*np.sqrt(max_reward))/np.sum(reward_kernel),decimals=4)
 
 def irregular_gradient_kernel(world_map, pos_slope_flag=True, left_pos_vals=True, slope_gradient=0.01):
     gradient_kernel = np.zeros((world_map.shape[0], world_map.shape[1]))
@@ -166,7 +142,7 @@ def locally_periodic_kernel(world_map, agent_name, size=5.0, length_scale=5.0, p
 def main():
     road_world = SimpleGridRoadWorld(size=15, default_world=True, num_blockers=0)
     print(road_world.world, road_world.world.shape)
-    plot_kernel(normalize_rewards(locally_periodic_kernel(road_world.world, agent_name=1),3), title='Sample Kernel Plot Visualization')
+    plot_planar_kernel(normalize_rewards(locally_periodic_kernel(road_world.world, agent_name=1),3), title='Sample Kernel Plot Visualization')
 
 
 if __name__ == '__main__':

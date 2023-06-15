@@ -14,7 +14,7 @@ def get_env_func(obs_arr):
 
 
 def get_hex_obs_vals(env_obs_samples):
-# transform observation samples into hex-values for voxel plots.
+    # transform observation samples into hex-values for voxel plots.
     color_dict = {
         '0' : '#F0F8FF55',    # aliceblue
         '1' : '#BCEE6855',    # darkolivegreen2
