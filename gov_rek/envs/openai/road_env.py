@@ -107,6 +107,7 @@ class GridRoadEnv(gym.Env):
         # 3 integer value assigned instead of 0 while carrying the package
         self.agent_two = DriverAgent(2, int(self.gas*2.75), 0)
         self.spec = EnvSpec("GridRoadEnv-v0")
+        self.max_reward = 2.5
 
     def reset(self):
         # sequential game formulation:
@@ -355,7 +356,7 @@ class GridRoadEnv(gym.Env):
             # default reward value for default env
             # needs to be updated for governed env
             # based on agent interactions with reward shaped env
-            reward = 2.5
+            reward = self.max_reward
             done = True
         elif self.state == 'L':
             reward = 0
