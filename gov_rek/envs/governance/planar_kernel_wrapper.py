@@ -1,8 +1,12 @@
+# general import statements
+import random
 from copy import deepcopy
-# import statements
+from collections import OrderedDict
+# environment related import statements
 from gov_rek.envs.governance.utils import *
 from gov_rek.envs.openai.road_env import GridRoadEnv
 from gov_rek.envs.governance.planar_kernels import *
+
 
 class PlanarKernelGovernanceWrapper(GridRoadEnv):
 
@@ -52,8 +56,14 @@ class PlanarKernelGovernanceWrapper(GridRoadEnv):
         
         return normalize_rewards(kernel_signal, max_reward)
     
-    def governance_reward(self, observation, kernel, agent_name, prev_obs, greedy_fraction):
-        agent_ind_x, agent_ind_y = np.where(observation == agent_name)
+    def governance_reward(self, observation, kernel, agent_name, prev_obs, greedy_fraction, her_goal):
+        # based on her goal, extracting the observation from the ordered dict is needed
+        # to make this governance wrapper compatible with the underlying road environment
+        if her_goal:
+            agent_ind_x, agent_ind_y = np.where(observation['observation'] == agent_name)
+        else:
+            agent_ind_x, agent_ind_y = np.where(observation == agent_name)
+        
         prev_agent_ind_x, prev_agent_ind_y = np.where(prev_obs == agent_name)
         prev_obs = observation # saving the previous observation state
         # if agent is not present in the observation grid, return 0 reward
@@ -69,6 +79,8 @@ class PlanarKernelGovernanceWrapper(GridRoadEnv):
             self.gov_kern_agent_one[agent_ind_x[0]][agent_ind_y[0]] = kernel[agent_ind_x[0]][agent_ind_y[0]] * greedy_fraction
         if agent_name == 2:
             self.gov_kern_agent_two[agent_ind_x[0]][agent_ind_y[0]] = kernel[agent_ind_x[0]][agent_ind_y[0]] * greedy_fraction
+        
+        return round(kernel_reward_val, 2), prev_obs
 
     def reset(self):
         self.prev_obs_agent_one = deepcopy(self.world)
@@ -83,9 +95,11 @@ class PlanarKernelGovernanceWrapper(GridRoadEnv):
         next_state, reward, done, info, agent = super().step(action)
         reward_new = 0
         if agent.name == 1:
-            reward_new, self.prev_obs_agent_one = self.governance_reward(next_state, self.gov_kern_agent_one, agent.name, self.prev_obs_agent_one)
+            reward_new, self.prev_obs_agent_one = self.governance_reward(next_state, self.gov_kern_agent_one, agent.name,
+                                                                         self.prev_obs_agent_one, self.her_goal)
         elif agent.name == 2:
-            reward_new, self.prev_obs_agent_two = self.governance_reward(next_state, self.gov_kern_agent_two, agent.name, self.prev_obs_agent_two)
+            reward_new, self.prev_obs_agent_two = self.governance_reward(next_state, self.gov_kern_agent_two, agent.name,
+                                                                         self.prev_obs_agent_two, self.her_goal)
 
         if agent.package == 3 and self.preward_flag_agent_one == True and agent.name == 1:
             reward_new = reward_new + round(self.max_reward / 4, 2)

@@ -51,7 +51,7 @@ def hyperboloid_kernel(world_map, offsets = None, radial_params= (2, 2, 2), axes
 
     return gradient_kernel
 
-def hyperboloid_kernel(world_map, offsets = None, radial_params= (2, 2, 2), axes = 2):
+def hyperboloid_kernel(world_map, offsets = None, radial_params= (1, 2, 2), axes = 2):
     # axes component represents the hyperboloid surface's orientation in {z, y, x} system
     if offsets is None:
         offsets = (int(world_map.shape[0]/2), int(world_map.shape[1]/2), int(world_map.shape[2]/2))
@@ -129,7 +129,7 @@ def hyperbolic_paraboloid_kernel(world_map, offsets = None, radial_params= (2, 2
 
     return gradient_kernel
 
-def torus_kernel(world_map, offsets = None, torus_params= (4, 2), axes = 2):
+def torus_kernel(world_map, offsets = None, torus_params= (8, 2), axes = 0):
     # axes component represents the hyperboloid surface's orientation in {z, y, x} system
     if offsets is None:
         offsets = (int(world_map.shape[0]/2), int(world_map.shape[1]/2), int(world_map.shape[2]/2))
@@ -172,8 +172,8 @@ def genus_ray_kernel(world_map, offsets = None):
 def main():
     road_world = SimpleGridDroneWorld(size=20, default_world=True, num_blockers=0)
     # Note: offsets can be passed with agent locations to make agent specific kernels
-    gradient_kernel = default_genus_kernel(road_world.world)
-    plot_surface_kernel(gradient_kernel, title='Sample Kernel Plot Visualization')
+    gradient_kernel = hyperboloid_kernel(road_world.world)
+    plot_surface_kernel(rotate_surface(gradient_kernel), title='Sample Kernel Plot Visualization')
 
 
 if __name__ == '__main__':

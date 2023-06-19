@@ -142,7 +142,7 @@ def locally_periodic_kernel(world_map, agent_name, size=5.0, length_scale=5.0, p
 def main():
     road_world = SimpleGridRoadWorld(size=15, default_world=True, num_blockers=0)
     print(road_world.world, road_world.world.shape)
-    plot_planar_kernel(normalize_rewards(locally_periodic_kernel(road_world.world, agent_name=2),3), title='Sample Kernel Plot Visualization')
+    plot_planar_kernel(normalize_rewards(regular_gradient_kernel(road_world.world),3), title='Sample Kernel Plot Visualization')
 
 
 if __name__ == '__main__':
