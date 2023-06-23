@@ -1,6 +1,7 @@
 import gym
 import random
 import numpy as np  
+from copy import deepcopy
 from gym import spaces
 from collections import OrderedDict
 from gym.envs.registration import EnvSpec
@@ -62,22 +63,26 @@ class GridRoadEnv(gym.Env):
         self.grid_road = SimpleGridRoadWorld(self.size,
                                              self.default_world,
                                              self.num_blockers)
-        self.world = self.grid_road.world
+        self.world_one = self.grid_road.world
+        self.world = self.world_one
         self.her_goal = her_goal
         if self.her_goal:
             self.goal_world = self.grid_road.goal_world
 
         if self.randomize_world:
-            self.world = self.randomly_rotate_world(self.world)
+            self.world = self.randomly_rotate_world(self.world_one)
         elif self.randomize_world and self.her_goal:
-            self.world, self.goal_world = self.randomly_rotate_world(self.world,
+            self.world, self.goal_world = self.randomly_rotate_world(self.world_one,
                                                                      self.goal_world,
                                                                      self.her_goal)
 
+        # world_start needs to be updated and interacted with
+        # and a copy of original world should remain as reference
+        self.world_start = self.world
 
         self.action_space = spaces.Discrete(4)
-        shape_0 = np.size(self.world, 0) # represents y-axis of the grid world
-        shape_1 = np.size(self.world, 1) # represents x-axis of the grid world
+        shape_0 = np.size(self.world_start, 0) # represents y-axis of the grid world
+        shape_1 = np.size(self.world_start, 1) # represents x-axis of the grid world
         if self.her_goal:
             self.observation_space = spaces.Dict(
                 {
@@ -127,24 +132,29 @@ class GridRoadEnv(gym.Env):
         self.grid_road = SimpleGridRoadWorld(self.size,
                                              self.default_world,
                                              self.num_blockers)
-        self.world = self.grid_road.world
-        
+        self.world_start = self.grid_road.world
+
         if self.her_goal:
             self.goal_world = self.grid_road.goal_world
 
         if self.randomize_world:
-            self.world = self.randomly_rotate_world(self.world)
+            self.world_start = self.randomly_rotate_world(self.world_start)
 
         if self.randomize_world:
-            self.world = self.randomly_rotate_world(self.world)
+            self.world_start = self.randomly_rotate_world(self.world_start)
         elif self.randomize_world and self.her_goal:
-            self.world, self.goal_world = self.randomly_rotate_world(self.world,
+            self.world_start, self.goal_world = self.randomly_rotate_world(self.world_start,
                                                                      self.goal_world,
                                                                      self.her_goal)
-            
+
+        # world_start needs to be updated and interacted with
+        # and a copy of original world should remain as reference
+        self.world = np.copy(self.world_start)
+
         return self._next_observation()
     
     def _next_observation(self):
+
         obs = self.world
         data_to_add = [0] * np.size(self.world, 1)
         # adding current player's label in the obs, not permutation invariant
@@ -157,7 +167,7 @@ class GridRoadEnv(gym.Env):
         #         [3, 0, 2],
         #         [0, 0, 4],
         #         [1, 0, 0]])
-
+        # print(self.world_start, self.world)
         if self.her_goal:
             goal_obs = self.goal_world
             goal_data_to_add = [0] * np.size(self.goal_world, 1)
@@ -170,7 +180,6 @@ class GridRoadEnv(gym.Env):
                     ("desired_goal", goal_obs),
                 ]
             )
-
 
         return obs
 
@@ -395,3 +404,26 @@ class GridRoadEnv(gym.Env):
         file.write(
             f'{self.success_episode[-1]} in {self.current_step} steps\n')
         file.close()
+
+def main():
+    simple_obs_list = []
+    simple_info_list = []
+    env_simple = GridRoadEnv(size = 3, gas = 3, her_goal = True)
+
+    for e_ in range(5):
+        obs = env_simple.reset()
+        for i in range(200):
+            # replacing model action prediction: model_simple.predict(obs)
+            action = random.randint(0, 4) 
+            obs, reward, done, info, agent = env_simple.step(action)
+            # agent attributes: agent.name, agent.gas, agent.package, agent.picked
+            print(obs, reward, done, info)
+            simple_obs_list.append(obs)
+            simple_info_list.append(info)
+            if done:
+                print(info['state'])
+                obs = env_simple.reset()
+                break
+
+if __name__ == '__main__':
+    main()
