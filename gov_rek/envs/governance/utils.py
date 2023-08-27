@@ -106,4 +106,4 @@ def plot_surface_kernel(kernel_arr, title):
     plt.show()
 
 def normalize_rewards(reward_kernel, max_reward):
-    return np.around((reward_kernel*np.sqrt(max_reward))/np.sum(reward_kernel), decimals=4)
+    return np.around((reward_kernel*np.sqrt(max_reward))/(np.sum(reward_kernel)*2), decimals=4)

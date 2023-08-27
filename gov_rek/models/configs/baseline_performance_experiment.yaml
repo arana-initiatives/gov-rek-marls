@@ -1,0 +1,12 @@
+gov_rek: False
+log_dir: "logs_dir/governed_ppo_trainer"
+check_freq: 1000
+trainer_policy: "MlpPolicy"
+verbose: 0
+total_timesteps: 120000
+size: 5
+gas: 7
+randomize_world: True
+kernel_list: ["regular_gradient_kernel", "inverse_radial_kernel"]
+mors_objective: ["regular_gradient_kernel"]
+her_goal: False

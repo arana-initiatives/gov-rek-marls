@@ -6,7 +6,7 @@ from gov_rek.envs.governance.utils import *
 # testing related imports
 from gov_rek.envs.common.entities import SimpleGridRoadWorld
 
-def irregular_gradient_kernel(world_map, pos_slope_flag=True, left_pos_vals=True, slope_gradient=0.01):
+def irregular_gradient_kernel(world_map, pos_slope_flag=False, left_pos_vals=True, slope_gradient=0.01):
     gradient_kernel = np.zeros((world_map.shape[0], world_map.shape[1]))
     for i in range(0,world_map.shape[0]):
         for j in range(0,world_map.shape[1]):
@@ -142,8 +142,8 @@ def locally_periodic_kernel(world_map, agent_name, size=5.0, length_scale=5.0, p
 def main():
     road_world = SimpleGridRoadWorld(size=15, default_world=True, num_blockers=0)
     print(road_world.world, road_world.world.shape)
-    plot_planar_kernel(normalize_rewards(regular_gradient_kernel(road_world.world),3), title='Sample Kernel Plot Visualization')
-
+    plot_planar_kernel(normalize_rewards(regular_gradient_kernel(road_world.world),3) + normalize_rewards(inverse_radial_kernel(road_world.world,1),3), title='Sample Kernel Plot Visualization')
+    
 
 if __name__ == '__main__':
     main()
