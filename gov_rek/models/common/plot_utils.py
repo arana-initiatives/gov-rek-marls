@@ -84,7 +84,7 @@ def _plotter(experiment_results_dict, y_limits, title):
     sns.set_style({'font.family': 'Times New Roman'})
     plt.clf()
     ax = fig.gca()
-    colors = ["forestgreen", "purple", "orange", "blue"]
+    colors = ["forestgreen", "purple", "orange", "blue", "crimson"]
     color_patch = []
     for color, (experiment_name, data_tuple) in zip(colors, experiment_results_dict.items()):
         # sns.lineplot(data=data, color=color, linewidth=2.5)
@@ -95,7 +95,7 @@ def _plotter(experiment_results_dict, y_limits, title):
     ax.set_ylim([0, len(data_tuple[0])])
     ax.set_ylim(y_limits)
     plt.xlabel('Timesteps Duration ($\\times$ 32 Times)', fontsize=15)
-    plt.ylabel('Reward Values', fontsize=15)
+    plt.ylabel('Average Reward Returns', fontsize=15)
     lgd=plt.legend(
     frameon=True, fancybox=True, \
     # prop={'size':14}, handles=color_patch, loc="best")
@@ -116,6 +116,7 @@ def _plotter(experiment_results_dict, y_limits, title):
 
 def experiment_plotter(experiment_path, experiment_list_name, y_limits, title):
     experiment_paths = [f for f in experiment_path.iterdir() if f.is_dir()]
+    experiment_paths.sort()
     trainer_logs_paths = []
     for exp_name, exp_pth in zip(experiment_list_name, experiment_paths):
         trainer_pth = [f / MONITOR_STR for f in exp_pth.iterdir() if f.is_dir()]
@@ -128,7 +129,7 @@ def experiment_plotter(experiment_path, experiment_list_name, y_limits, title):
 
 if __name__ == "__main__":
     # plotter function for plotting average reward returns and average episode lengths during the learning stage
-    experiment_result_path = GOV_REK_VS_MORS_OBJ_PATH
-    experiment_list_name = ["GOV-REK on Random Env", "MORS on Random Env", "GOV-REK on Baseline Env", "MORS on Baseline Env"]
-    y_limits = [1., 4.75]
+    experiment_result_path = GOV_REK_ROBUSTNESS_PATH # GOV_REK_VS_MORS_OBJ_PATH
+    experiment_list_name = ["One Blocker Object", "Two Blocker Object", "Three Blocker Object", "Four Blocker Object", "Five Blocker Object"]
+    y_limits = [1., 4.5]
     experiment_plotter(experiment_result_path, experiment_list_name, y_limits, "Average Reward Returns for 5X5 Environment")
