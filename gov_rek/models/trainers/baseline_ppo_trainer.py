@@ -20,6 +20,9 @@ def ppo_trainer(config_path):
                         size = configs.size,
                         gas = configs.gas,
                         her_goal = configs.her_goal,
+                        num_blockers=configs.num_blockers,
+                        default_world=configs.default_world,
+                        delay=configs.delay,
                         )
     env = Monitor(env, configs.log_dir)
     ppo_callback = SaveOnBestTrainingRewardCallback(check_freq=configs.check_freq, log_dir=configs.log_dir)
@@ -30,5 +33,5 @@ def ppo_trainer(config_path):
 
 if __name__ == '__main__':
     # TODO: update the below `config_path` to select the correct experimentation configurations
-    config_path = "gov_rek/models/configs/baseline_performance_experiment.yaml"
+    config_path = "gov_rek/models/configs/robustness_performance_experiment_mors.yaml"
     ppo_trainer(config_path)

@@ -53,10 +53,9 @@ class GridRoadEnv(gym.Env):
         return gas_val
 
     def __init__(self, size, gas, randomize_world = False, \
-                 default_world = True, num_blockers = 0, her_goal = False, delay = False):
+                 default_world = True, num_blockers = 0, her_goal = False):
         # gas constraints limits for restricted env mobility
         # gas : {n_min: trunc(n/2), n_max: 2*(n-1)-1}
-        self.delay = delay
         self.size = size
         self.randomize_world = randomize_world
         self.num_blockers = num_blockers
@@ -383,16 +382,10 @@ class GridRoadEnv(gym.Env):
             done = True
 
         # agents object used for alternating the agent turns
-        if self.delay:
-            if self.current_player.name == 1 and self.current_step > self.gas:
-                    self.current_player = self.agent_two
-            elif self.current_player.name == 2:
-                self.current_player = self.agent_one
-        else:
-            if self.current_player.name == 1:
-                    self.current_player = self.agent_two
-            elif self.current_player.name == 2:
-                self.current_player = self.agent_one
+        if self.current_player.name == 1:
+            self.current_player = self.agent_two
+        elif self.current_player.name == 2:
+            self.current_player = self.agent_one
 
         if done:
             self.render_episode(self.state)

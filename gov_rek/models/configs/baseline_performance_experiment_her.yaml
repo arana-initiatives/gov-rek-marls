@@ -1,0 +1,13 @@
+gov_rek: True # varied across experiments
+log_dir: "logs_dir/governed_her_trainer"
+check_freq: 1000
+trainer_policy: "MultiInputPolicy"
+verbose: 0
+total_timesteps: 72000
+size: 5
+gas: 7
+randomize_world: False # varied across experiments
+kernel_list: ["regular_gradient_kernel", "inverse_radial_kernel"]
+her_goal: True # fixed across experiments
+n_sampled_goal: 4
+goal_selection_strategy: "future"

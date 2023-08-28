@@ -11,11 +11,11 @@ from gov_rek.envs.governance.planar_kernels import *
 class PlanarKernelGovernanceWrapper(GridRoadEnv):
 
     def __init__(self, kernel_list, size, gas, randomize_world = False, \
-                 default_world = True, num_blockers = 0, her_goal = False, greedy_fraction = 1.0):
+                 default_world = True, num_blockers = 0, her_goal = False, greedy_fraction = 1.0, delay = False):
         # kernel_list: list[tuple(str, dict)] specifies the reward kernels that are used in the environment
         # for example: kernel list[[(kernel types, function arg dict)]}], the function arg dict specifies
         super(PlanarKernelGovernanceWrapper, self).__init__(size, gas, randomize_world, \
-                                                            default_world, num_blockers, her_goal)
+                                                            default_world, num_blockers, her_goal, delay)
         self.kernel_list = kernel_list
         self.greedy_fraction = greedy_fraction
         self.gov_kern_agent_one = self.get_gov_reks(self.kernel_list, {'world_map': self.world_start, 'agent_name': 1}, self.max_reward, self.size)
