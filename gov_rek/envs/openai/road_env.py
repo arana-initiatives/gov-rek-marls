@@ -112,7 +112,7 @@ class GridRoadEnv(gym.Env):
         # 3 integer value assigned instead of 0 while carrying the package
         self.agent_one = DriverAgent(1, self.gas, 0)
         # 3 integer value assigned instead of 0 while carrying the package
-        self.agent_two = DriverAgent(2, int(self.gas*2.75), 0)
+        self.agent_two = DriverAgent(2, int(self.gas*3.75), 0)
         self.spec = EnvSpec("GridRoadEnv-v0")
         self.max_reward = 2.5
 
@@ -123,7 +123,7 @@ class GridRoadEnv(gym.Env):
         # instantiating agent 1 upon env reset
         self.agent_one = DriverAgent(1, self.gas, 0)
         # instantiating agent 2 upon env reset
-        self.agent_two = DriverAgent(2, int(self.gas*2.75), 0)
+        self.agent_two = DriverAgent(2, int(self.gas*3.75), 0)
         self.current_player = self.agent_one
         # 'P' represents playable game state,
         # 'W' represents package delivered state,
@@ -386,8 +386,8 @@ class GridRoadEnv(gym.Env):
         if self.delay:
             if self.current_player.name == 1 and self.current_step > self.gas:
                     self.current_player = self.agent_two
-            elif self.current_player.name == 2:
-                self.current_player = self.agent_one
+            # elif self.current_player.name == 2:
+            #     self.current_player = self.agent_one
         else:
             if self.current_player.name == 1:
                     self.current_player = self.agent_two

@@ -94,7 +94,7 @@ def _plotter(experiment_results_dict, y_limits, title):
     
     ax.set_ylim([0, len(data_tuple[0])])
     ax.set_ylim(y_limits)
-    plt.xlabel('Timesteps Duration ($\\times$ 32 Times)', fontsize=15)
+    plt.xlabel('Timesteps Duration ($\\times$ 80 Times)', fontsize=15)
     plt.ylabel('Average Reward Returns', fontsize=15)
     lgd=plt.legend(
     frameon=True, fancybox=True, \
@@ -117,6 +117,7 @@ def _plotter(experiment_results_dict, y_limits, title):
 def experiment_plotter(experiment_path, experiment_list_name, y_limits, title):
     experiment_paths = [f for f in experiment_path.iterdir() if f.is_dir()]
     experiment_paths.sort()
+    print(experiment_paths)
     trainer_logs_paths = []
     for exp_name, exp_pth in zip(experiment_list_name, experiment_paths):
         trainer_pth = [f / MONITOR_STR for f in exp_pth.iterdir() if f.is_dir()]
@@ -129,7 +130,7 @@ def experiment_plotter(experiment_path, experiment_list_name, y_limits, title):
 
 if __name__ == "__main__":
     # plotter function for plotting average reward returns and average episode lengths during the learning stage
-    experiment_result_path = GOV_REK_ROBUSTNESS_PATH # GOV_REK_VS_MORS_OBJ_PATH
-    experiment_list_name = ["One Blocker Object", "Two Blocker Object", "Three Blocker Object", "Four Blocker Object", "Five Blocker Object"]
-    y_limits = [1., 4.5]
-    experiment_plotter(experiment_result_path, experiment_list_name, y_limits, "Average Reward Returns for 5X5 Environment")
+    experiment_result_path = GOV_REK_SCALABILITY_PATH # GOV_REK_ROBUSTNESS_PATH, # GOV_REK_VS_MORS_OBJ_PATH
+    experiment_list_name = ["100% Reward Decay", "75% Reward Decay", "50% Reward Decay", "25% Reward Decay", "No Reward Decay"]
+    y_limits = [0.5, 4.0]
+    experiment_plotter(experiment_result_path, experiment_list_name, y_limits, "Average Reward Returns for 10X10 Environment")

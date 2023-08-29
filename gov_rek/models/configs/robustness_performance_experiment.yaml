@@ -13,3 +13,4 @@ her_goal: False # fixed for all experiments
 num_blockers: 0
 default_world: True
 delay: True
+greedy_fraction: 1.0

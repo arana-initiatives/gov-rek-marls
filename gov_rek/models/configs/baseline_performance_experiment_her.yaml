@@ -11,3 +11,7 @@ kernel_list: ["regular_gradient_kernel", "inverse_radial_kernel"]
 her_goal: True # fixed across experiments
 n_sampled_goal: 4
 goal_selection_strategy: "future"
+num_blockers: 0
+default_world: False
+delay: False
+greedy_fraction: 1.0
