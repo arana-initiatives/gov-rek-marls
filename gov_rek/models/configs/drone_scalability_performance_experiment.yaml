@@ -1,0 +1,16 @@
+gov_rek: True # varied across experiments
+log_dir: "logs_dir/governed_ppo_trainer"
+check_freq: 1000
+trainer_policy: "MlpPolicy"
+verbose: 0
+total_timesteps: 120000
+size: 3 # 5
+gas: 5 # 11
+randomize_world: False # varied across experiments
+kernel_list: ["hyperboloid_kernel", "diagonal_gradient"]
+# mors_objective: ["regular_gradient_kernel"]
+her_goal: False # fixed for all experiments
+num_blockers: 0
+default_world: True
+delay: True
+greedy_fraction: 0.5

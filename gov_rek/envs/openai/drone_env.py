@@ -54,9 +54,10 @@ class GridDroneEnv(gym.Env):
         return gas_val
     
     def __init__(self, size, gas, randomize_world = False, \
-                 default_world = True, num_blockers = 0, her_goal = False):
+                 default_world = True, num_blockers = 0, her_goal = False, delay = False):
         # gas constraints limits for restricted env mobility
         # gas : {n_min: trunc(n/2), n_max: 2*(n-1)-1}
+        self.delay = delay
         self.size = size
         self.randomize_world = randomize_world
         self.num_blockers = num_blockers
@@ -77,10 +78,14 @@ class GridDroneEnv(gym.Env):
                                                                      self.her_goal)
 
 
+        # world_start needs to be updated and interacted with
+        # and a copy of original world should remain as reference
+        self.world_start = self.world
+
         self.action_space = spaces.Discrete(6)
-        shape_0 = np.size(self.world, 0) # represents z-axis of the grid world
-        shape_1 = np.size(self.world, 1) # represents y-axis of the grid world
-        shape_2 = np.size(self.world, 2) # represents x-axis of the grid world
+        shape_0 = np.size(self.world_start, 0) # represents z-axis of the grid world
+        shape_1 = np.size(self.world_start, 1) # represents y-axis of the grid world
+        shape_2 = np.size(self.world_start, 2) # represents x-axis of the grid world
 
         if self.her_goal:
             self.observation_space = spaces.Dict(
@@ -109,8 +114,10 @@ class GridDroneEnv(gym.Env):
         # 3 integer value assigned instead of 0 while carrying the package
         self.agent_one = DroneAgent(1, self.gas, 0)
         # 3 integer value assigned instead of 0 while carrying the package
-        self.agent_two = DroneAgent(2, int(self.gas*2.75), 0)
+        self.agent_two = DroneAgent(2, int(self.gas*3.75), 0)
         self.spec = EnvSpec("GridDroneEnv-v0")
+        self.max_step = int(self.gas*4.75)
+        self.max_reward = 2.5
 
     def reset(self):
         # sequential game formulation:
@@ -119,32 +126,36 @@ class GridDroneEnv(gym.Env):
         # instantiating agent 1 upon env reset
         self.agent_one = DroneAgent(1, self.gas, 0)
         # instantiating agent 2 upon env reset
-        self.agent_two = DroneAgent(2, int(self.gas*2.75), 0)
+        self.agent_two = DroneAgent(2, int(self.gas*3.75), 0)
         self.current_player = self.agent_one
         # 'P' represents playable game state,
         # 'W' represents package delivered state,
         # 'L' represents no delivery state
         self.state = 'P'
         self.current_step = 0
-        self.max_step = int(self.gas*5.75)
+        self.max_step = int(self.gas*4.75)
         self.grid_drone = SimpleGridDroneWorld(self.size,
                                              self.default_world,
                                              self.num_blockers)
-        self.world = self.grid_drone.world
+        self.world_start = self.grid_drone.world
         
         if self.her_goal:
             self.goal_world = self.grid_drone.goal_world
 
         if self.randomize_world:
-            self.world = self.randomly_rotate_world(self.world)
+            self.world_start = self.randomly_rotate_world(self.world_start)
 
         if self.randomize_world:
-            self.world = self.randomly_rotate_world(self.world)
+            self.world_start = self.randomly_rotate_world(self.world_start)
         elif self.randomize_world and self.her_goal:
-            self.world, self.goal_world = self.randomly_rotate_world(self.world,
+            self.world_start, self.goal_world = self.randomly_rotate_world(self.world_start,
                                                                      self.goal_world,
                                                                      self.her_goal)
-            
+        
+        # world_start needs to be updated and interacted with
+        # and a copy of original world should remain as reference
+        self.world = np.copy(self.world_start)
+
         return self._next_observation()
     
     def _next_observation(self):
@@ -437,7 +448,7 @@ class GridDroneEnv(gym.Env):
             # default reward value for default env
             # needs to be updated for governed env
             # based on agent interactions with reward shaped env
-            reward = 2.5
+            reward = self.max_reward
             done = True
         elif self.state == 'L':
             reward = 0
@@ -453,10 +464,16 @@ class GridDroneEnv(gym.Env):
             done = True
 
         # agents object used for alternating the agent turns
-        if self.current_player.name == 1:
-            self.current_player = self.agent_two
-        elif self.current_player.name == 2:
-            self.current_player = self.agent_one
+        if self.delay:
+            if self.current_player.name == 1 and self.current_step > self.gas:
+                    self.current_player = self.agent_two
+            # elif self.current_player.name == 2:
+            #     self.current_player = self.agent_one
+        else:
+            if self.current_player.name == 1:
+                    self.current_player = self.agent_two
+            elif self.current_player.name == 2:
+                self.current_player = self.agent_one
 
         if done:
             self.render_episode(self.state)

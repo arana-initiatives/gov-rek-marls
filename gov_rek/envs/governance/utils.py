@@ -6,12 +6,13 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 
-def rotate_surface(kernel_surface, offsets = None, rotation_angles=(m.pi/4, 0, m.pi/4)):
+def rotate_surface(world_map, offsets = None, rotation_angles=(0, 0, 0)):
+    # example argument: rotation_angles=(m.pi/4, 0, m.pi/4)
     
     if offsets is None:
-        offsets = (int(kernel_surface.shape[0]/2), int(kernel_surface.shape[1]/2), int(kernel_surface.shape[2]/2))
+        offsets = (int(world_map.shape[0]/2), int(world_map.shape[1]/2), int(world_map.shape[2]/2))
 
-    rot_kernel_surface = np.zeros((kernel_surface.shape[0], kernel_surface.shape[1], kernel_surface.shape[2]))
+    rot_world_map = np.zeros((world_map.shape[0], world_map.shape[1], world_map.shape[2]))
     r_x = np.matrix([[ 1, 0 , 0 ],
                    [ 0, m.cos(rotation_angles[2]),-m.sin(rotation_angles[2])],
                    [ 0, m.sin(rotation_angles[2]), m.cos(rotation_angles[2])]])
@@ -23,16 +24,16 @@ def rotate_surface(kernel_surface, offsets = None, rotation_angles=(m.pi/4, 0, m
                    [-m.sin(rotation_angles[0]), 0, m.cos(rotation_angles[0])]])
     R = r_z * r_y * r_x
     
-    for i in range(0, kernel_surface.shape[0]):
-        for j in range(0, kernel_surface.shape[1]):
-            for k in range(0, kernel_surface.shape[2]):
+    for i in range(0, world_map.shape[0]):
+        for j in range(0, world_map.shape[1]):
+            for k in range(0, world_map.shape[2]):
                 rot_idx_vals = list(np.array((R * np.array([[k-offsets[2]], [j-offsets[1]], [i-offsets[0]]])).astype(int)).flatten())
-                if 0 <= rot_idx_vals[0]+offsets[0] < kernel_surface.shape[0] and \
-                   0 <= rot_idx_vals[1]+offsets[1] < kernel_surface.shape[1] and \
-                   0 <= rot_idx_vals[2]+offsets[2] < kernel_surface.shape[2] :
-                    rot_kernel_surface[rot_idx_vals[2]+offsets[0]][rot_idx_vals[1]+offsets[1]][rot_idx_vals[0]+offsets[2]] = kernel_surface[i][j][k]
+                if 0 <= rot_idx_vals[0]+offsets[0] < world_map.shape[0] and \
+                   0 <= rot_idx_vals[1]+offsets[1] < world_map.shape[1] and \
+                   0 <= rot_idx_vals[2]+offsets[2] < world_map.shape[2] :
+                    rot_world_map[rot_idx_vals[2]+offsets[0]][rot_idx_vals[1]+offsets[1]][rot_idx_vals[0]+offsets[2]] = world_map[i][j][k]
 
-    return rot_kernel_surface
+    return rot_world_map
 
 
 def plot_planar_kernel(kernel_arr, title):

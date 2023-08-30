@@ -1,4 +1,5 @@
 """result visualizer script which summarizes the governance experiments."""
+import random
 from gov_rek.models.common.constants import *
 import numpy as np
 import pandas as pd
@@ -50,9 +51,15 @@ def result_processor(trainer_logs_dict):
     intermediate_result_list = []
     for (exp_name, (rwd_lst, eps_lst)) in experiment_result_list:
         for idx, rwds in enumerate(rwd_lst):
-            rwd_lst[idx] = rwds[:min_len]
+            idx_vals = random.sample(range(0, len(rwds)), min_len)
+            idx_vals.sort()
+            rwds = [rwds[i] for i in idx_vals]
+            rwd_lst[idx] = rwds
         for idx, epss in enumerate(eps_lst):
-            eps_lst[idx] = epss[:min_len]
+            idx_vals = random.sample(range(0, len(epss)), min_len)
+            idx_vals.sort()
+            epss = [epss[i] for i in idx_vals]
+            eps_lst[idx] = epss
         intermediate_result_list.append((exp_name, (rwd_lst, eps_lst)))
     
     final_result_list = []
@@ -88,14 +95,14 @@ def _plotter(experiment_results_dict, y_limits, title):
     color_patch = []
     for color, (experiment_name, data_tuple) in zip(colors, experiment_results_dict.items()):
         # sns.lineplot(data=data, color=color, linewidth=2.5)
-        ax.plot(range(0, len(data_tuple[0])), data_tuple[0], color=color, alpha=.6)
-        ax.fill_between(range(0, len(data_tuple[0])), data_tuple[1], data_tuple[2], color=color, alpha=.3)
+        ax.plot(range(0, len(data_tuple[0])), data_tuple[3], color=color, alpha=.6)
+        ax.fill_between(range(0, len(data_tuple[0])), data_tuple[4], data_tuple[5], color=color, alpha=.3)
         color_patch.append(mpatches.Patch(color=color, label=experiment_name))
     
     ax.set_ylim([0, len(data_tuple[0])])
     ax.set_ylim(y_limits)
-    plt.xlabel('Timesteps Duration ($\\times$ 80 Times)', fontsize=15)
-    plt.ylabel('Average Reward Returns', fontsize=15)
+    plt.xlabel('Timesteps Duration ($\\times$ 45 Times)', fontsize=15)
+    plt.ylabel('Average Episode Lengths', fontsize=15)
     lgd=plt.legend(
     frameon=True, fancybox=True, \
     # prop={'size':14}, handles=color_patch, loc="best")
@@ -130,7 +137,8 @@ def experiment_plotter(experiment_path, experiment_list_name, y_limits, title):
 
 if __name__ == "__main__":
     # plotter function for plotting average reward returns and average episode lengths during the learning stage
-    experiment_result_path = GOV_REK_SCALABILITY_PATH # GOV_REK_ROBUSTNESS_PATH, # GOV_REK_VS_MORS_OBJ_PATH
-    experiment_list_name = ["100% Reward Decay", "75% Reward Decay", "50% Reward Decay", "25% Reward Decay", "No Reward Decay"]
-    y_limits = [0.5, 4.0]
-    experiment_plotter(experiment_result_path, experiment_list_name, y_limits, "Average Reward Returns for 10X10 Environment")
+    experiment_result_path = GOV_REK_DRONE_SCALABILITY_PATH # GOV_REK_SCALABILITY_PATH # GOV_REK_ROBUSTNESS_PATH, # GOV_REK_VS_MORS_OBJ_PATH
+    experiment_list_name = ["3x3 Grid with 100% Reward Decay", "3x3 Grid with 50% Reward Decay",
+                            "5x5 Grid with 100% Reward Decay", "5x5 Grid with 50% Reward Decay"]
+    y_limits = [10, 40]
+    experiment_plotter(experiment_result_path, experiment_list_name, y_limits, "Average Episode Lengths for Drone Environment")

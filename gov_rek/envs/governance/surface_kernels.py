@@ -23,35 +23,8 @@ def ellipsoid_kernel(world_map, offsets = None, radial_params= (5, 2, 2)):
 
     return gradient_kernel
 
-def hyperboloid_kernel(world_map, offsets = None, radial_params= (2, 2, 2), axes = 2):
-    # axes component represents the hyperboloid surface's orientation in {z, y, x} system
-    if offsets is None:
-        offsets = (int(world_map.shape[0]/2), int(world_map.shape[1]/2), int(world_map.shape[2]/2))
 
-    gradient_kernel = np.zeros((world_map.shape[0], world_map.shape[1], world_map.shape[2]))
-
-    for i in range(0, gradient_kernel.shape[0]):
-        for j in range(0, gradient_kernel.shape[1]):
-            for k in range(0, gradient_kernel.shape[2]):
-                if axes == 0:
-                    if -1 * (k - offsets[0])**2 / radial_params[0]**2 + \
-                    (j - offsets[1])**2 / radial_params[1]**2 + \
-                    (i - offsets[2])**2 / radial_params[2]**2 <= 1:
-                        gradient_kernel[i][j][k] = 1
-                elif axes == 1:
-                    if (k - offsets[0])**2 / radial_params[0]**2 - \
-                    (j - offsets[1])**2 / radial_params[1]**2 + \
-                    (i - offsets[2])**2 / radial_params[2]**2 <= 1:
-                        gradient_kernel[i][j][k] = 1
-                else:
-                    if (k - offsets[0])**2 / radial_params[0]**2 + \
-                    (j - offsets[1])**2 / radial_params[1]**2 - \
-                    (i - offsets[2])**2 / radial_params[2]**2 <= 1:
-                        gradient_kernel[i][j][k] = 1
-
-    return gradient_kernel
-
-def hyperboloid_kernel(world_map, offsets = None, radial_params= (1, 2, 2), axes = 2):
+def hyperboloid_kernel(world_map, offsets = None, radial_params= (1, 1, 1), axes = 2):
     # axes component represents the hyperboloid surface's orientation in {z, y, x} system
     if offsets is None:
         offsets = (int(world_map.shape[0]/2), int(world_map.shape[1]/2), int(world_map.shape[2]/2))
@@ -129,7 +102,7 @@ def hyperbolic_paraboloid_kernel(world_map, offsets = None, radial_params= (5, 1
 
     return gradient_kernel
 
-def torus_kernel(world_map, offsets = None, torus_params= (8, 2), axes = 0):
+def torus_kernel(world_map, offsets = None, torus_params= (5, 2), axes = 0):
     # axes component represents the hyperboloid surface's orientation in {z, y, x} system
     if offsets is None:
         offsets = (int(world_map.shape[0]/2), int(world_map.shape[1]/2), int(world_map.shape[2]/2))
@@ -168,11 +141,24 @@ def genus_ray_kernel(world_map, offsets = None):
 
     return gradient_kernel
 
+def diagonal_gradient(world_map, negative = False):
+    gradient_kernel = np.zeros((world_map.shape[0], world_map.shape[1], world_map.shape[2]))
+    for i in range(0, gradient_kernel.shape[0]):
+        for j in range(0, gradient_kernel.shape[1]):
+            for k in range(0, gradient_kernel.shape[2]):
+                    if negative:
+                        if i == j == k:
+                            gradient_kernel[i][j][-k] = 1
+                    else:
+                        if i == j == k:
+                            gradient_kernel[i][j][k] = 1
+
+    return gradient_kernel
 
 def main():
-    road_world = SimpleGridDroneWorld(size=20, default_world=True, num_blockers=0)
+    road_world = SimpleGridDroneWorld(size=5, default_world=True, num_blockers=0)
     # Note: offsets can be passed with agent locations to make agent specific kernels
-    gradient_kernel = hyperboloid_kernel(road_world.world)
+    gradient_kernel = rotate_surface(hyperboloid_kernel(road_world.world), rotation_angles=(m.pi/4, 0, -m.pi/4)) + diagonal_gradient(road_world.world)
     plot_surface_kernel(gradient_kernel, title='Sample Kernel Plot Visualization')
 
 

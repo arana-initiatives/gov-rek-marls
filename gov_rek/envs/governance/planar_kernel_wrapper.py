@@ -32,7 +32,7 @@ class PlanarKernelGovernanceWrapper(GridRoadEnv):
             
             func_args_dict = args_dict.copy()
             if kernel_args:
-                func_args_dict.update(args_dict)
+                func_args_dict.update(kernel_args)
 
             if kernel_function == 'irregular_gradient_kernel':
                 func_args_dict.pop('agent_name')
