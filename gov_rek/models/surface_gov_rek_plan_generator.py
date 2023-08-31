@@ -22,17 +22,16 @@ class PlanarGovernedTrainer():
         self.halving_eta = halving_eta
         self.num_brackets = num_brackets
         self.bracket_budget = total_budget / num_hpo_rounds / num_brackets
-        self.agent_kernels = [('inverse_radial_kernel', {'slope_gradient': 0.05}),
-                              ('squared_exponential_kernel', {'size': 5.0, 'length_scale': 5.0}),
-                              ('rational_quadratic_kernel', {'size': 5.0, 'length_scale': 5.0, 'alpha': 5.0}),
-                              ('periodic_kernel', {'size':5.0, 'length_scale': 5.0, 'period': 2*np.pi}),
-                              ('locally_periodic_kernel', {'size': 5.0, 'length_scale': 5.0, 'period':2*np.pi, 'alpha': 5.0})]
-        self.spatial_kernels = [('irregular_gradient_kernel', {'pos_slope_flag': True, 'left_pos_vals': True, 'slope_gradient': 0.01}),
-                                ('regular_gradient_kernel', {'pos_slope_flag': True, 'left_pos_vals': True, 'slope_gradient': 0.01}),
-                                ('splitted_gradient_kernel', {'size': 5.0, 'pos_slope_flag': True, 'slope_gradient': 0.01})]
+        self.surface_kernels = [('ellipsoid_kernel', None),
+                              ('hyperboloid_kernel', None),
+                              ('elliptic_paraboloid_kernel', None),
+                              ('hyperbolic_paraboloid_kernel', None),
+                              ('torus_kernel', None),
+                              ('genus_ray_kernel', None),
+                              ('diagonal_gradient', None),]
         self.budget_dict_list = self.get_budget_dict(self.bracket_budget, self.num_brackets, self.halving_eta,
                                                      self.total_budget, self.num_hpo_rounds)
-        self.re_hpo_config_list = self.kernel_config_generator(self.budget_dict_list, self.agent_kernels, self.spatial_kernels)
+        self.re_hpo_config_list = self.kernel_config_generator(self.budget_dict_list, self.surface_kernels, self.surface_kernels)
 
     def get_budget_dict(self, bracket_budget, num_brackets, halving_eta, total_budget, num_hpo_rounds):
         budget_dict_list = []

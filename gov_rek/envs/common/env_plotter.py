@@ -55,9 +55,6 @@ def render_drone_agent(obs_list, file_path, env_out=False):
     def make_axes(grid=False):
         fig = plt.figure(figsize=(5,5) )
         ax = fig.add_subplot(projection='3d')
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        ax.set_zlabel("z")
         ax.grid(grid)
         return ax, fig
 
