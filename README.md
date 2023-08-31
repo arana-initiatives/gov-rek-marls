@@ -11,6 +11,7 @@ And, the corresponding experiments and jupyter notebooks for result replication 
   * [Environment Dynamics](#environment-dynamics)
   * [Sparse Rewards Scheme](#sparse-rewards-scheme)
   * [Environment Parameters Details](#environment-parameters-details)
+  * [GOV-REK Experimentation Details](#gov-rek-experimentation-details)
 * [Developer Execution Instructions](#developer-execution-instructions)
 
 ### OpenAI Gym Package Delivery Environment Description
@@ -48,8 +49,8 @@ These agents are specifically designed for the CTCE paradigm for system prototyp
 The agents cannot collide and move outside the environment, and actions prompting such scenarios are non-responsive in both environments.
 In the implementation the package is automatically picked up by the vehicle or drone when the agent reaches the package location.
 In the intermediate stage the package is dropped when the gas/fuel of the first agent is finished.
-And, for task completion stage the package is dropped automatically by the second agent when either it reaches the goal or in the worst case scenario its gas is finished.
-Here, we focus specifically in a resource constraint setting where both agents does not have enough fuel to deliver the package, and both agents need to learn cooperation.
+And, for the task completion stage the package is dropped automatically by the second agent when either it reaches the goal or in the worst case scenario its gas is finished.
+Here, we focus specifically in a resource constraint setting where both agents do not have enough fuel to deliver the package, and both agents need to learn cooperation.
   
 #### Sparse Rewards Scheme
 
@@ -66,6 +67,13 @@ For consistency purposes, both the 2D grid road and 3D grid space environments a
 * `num_blockers`: This numeric argument populates specified obstacles randomly in the environments.
 * `her_goal`: This argument changes the observation type into goal based environment observation style for compatibility with HER like algorithms.
 
+#### GOV-REK Experimentation Details
+
+The documented experiment results for 215 different training runs quantifying robustness, scalability, and comparative performance are available in the `experiment_results` directory.
+Further, for executing the `GOV-REK` kernel iteration plan, and corresponding baselines kernel solution feel free to use PPO implementations in the `trainers` submodule in the `models` module.
+Simply, select and alter the config `.yaml` file for any of the experimentation tasks, and change the config file path in the trainer files to execute the baseline trainers in CTCE setting.
+Further, the `GOV-REK` kernel iteration algorithm plan can also be generated for the 2D-grid road and 3D-grid drone environments from the corresponding generators available in the `models` module.
+
 ### Developer Execution Instructions
 
 For debugging the project and parallely interacting with the codebase follow below stated two steps:
@@ -75,3 +83,4 @@ For debugging the project and parallely interacting with the codebase follow bel
 * Second, simply run the command in your `conda` environment `/home/{**path**}/miniconda3/envs/gov-rs-marls/bin/python
 /home/{**path**}/gov-rs-marls/govrs/envs/openai/road_env.py` to test specific module of your choice from the project while your `pwd` is `{some-base-path}/gov-rs-marls/`.
   * **Note:** In the above `python` command, `gov-rs-marls` is also the name of the `conda` environment in use, same as the `pwd` or repository name.
+
