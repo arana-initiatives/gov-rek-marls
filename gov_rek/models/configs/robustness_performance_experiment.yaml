@@ -3,14 +3,14 @@ log_dir: "logs_dir/governed_ppo_trainer"
 check_freq: 1000
 trainer_policy: "MlpPolicy"
 verbose: 0
-total_timesteps: 250000
+total_timesteps: 120000
 size: 5
 gas: 7
-randomize_world: False # varied across experiments
+randomize_world: True # varied across experiments
 kernel_list: ["regular_gradient_kernel", "inverse_radial_kernel"]
 mors_objective: ["regular_gradient_kernel"]
 her_goal: False # fixed for all experiments
 num_blockers: 0
 default_world: True
 delay: True
-greedy_fraction: 1.0
+greedy_fraction: 0.0

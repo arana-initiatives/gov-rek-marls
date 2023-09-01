@@ -11,7 +11,7 @@ And, the corresponding experiments and jupyter notebooks for result replication 
   * [Environment Dynamics](#environment-dynamics)
   * [Sparse Rewards Scheme](#sparse-rewards-scheme)
   * [Environment Parameters Details](#environment-parameters-details)
-  * [GOV-REK Experimentation Details](#gov-rek-experimentation-details)
+* [GOV-REK Experimentation Details](#gov-rek-experimentation-details)
 * [Developer Execution Instructions](#developer-execution-instructions)
 
 ### OpenAI Gym Package Delivery Environment Description
@@ -67,9 +67,9 @@ For consistency purposes, both the 2D grid road and 3D grid space environments a
 * `num_blockers`: This numeric argument populates specified obstacles randomly in the environments.
 * `her_goal`: This argument changes the observation type into goal based environment observation style for compatibility with HER like algorithms.
 
-#### GOV-REK Experimentation Details
+### GOV-REK Experimentation Details
 
-The documented experiment results for 215 different training runs quantifying robustness, scalability, and comparative performance are available in the `experiment_results` directory.
+The documented experiment results for 230 different training runs quantifying robustness, scalability, and comparative performance are available in the `experiment_results` directory.
 Further, for executing the `GOV-REK` kernel iteration plan, and corresponding baselines kernel solution feel free to use PPO implementations in the `trainers` submodule in the `models` module.
 Simply, select and alter the config `.yaml` file for any of the experimentation tasks, and change the config file path in the trainer files to execute the baseline trainers in CTCE setting.
 Further, the `GOV-REK` kernel iteration algorithm plan can also be generated for the 2D-grid road and 3D-grid drone environments from the corresponding generators available in the `models` module.

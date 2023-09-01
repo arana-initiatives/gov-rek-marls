@@ -1,3 +1,4 @@
+"""Currently the HER implementation continue to show package dependency issues for our correct implementation."""
 from omegaconf import OmegaConf
 from stable_baselines3 import HerReplayBuffer, DQN
 from stable_baselines3.common.monitor import Monitor

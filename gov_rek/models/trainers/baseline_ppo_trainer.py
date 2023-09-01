@@ -35,5 +35,5 @@ def ppo_trainer(config_path):
 
 if __name__ == '__main__':
     # TODO: update the below `config_path` to select the correct experimentation configurations
-    config_path = SCALABILITY_PER_EXP_CONFIG # BASELINE_PER_EXP_CONFIG, # ROBUSTNESS_PER_EXP_CONFIG
+    config_path = ROBUSTNESS_PER_EXP_CONFIG # BASELINE_PER_EXP_CONFIG, # SCALABILITY_PER_EXP_CONFIG
     ppo_trainer(config_path)
